@@ -1,0 +1,54 @@
+services:
+#   database:
+#       container_name: qabu-mysql
+#       image: mysql:latest
+#       restart: always
+#       environment:
+#           MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#           MYSQL_DATABASE: ${MYSQL_DATABASE}
+#           MYSQL_USER: ${MYSQL_USER}
+#           MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+#           MYSQL_HOST: database
+#       healthcheck:
+#           test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
+#           timeout: 20s
+#           retries: 10
+    backend:
+        container_name: qabu-backend
+        restart: always
+        env_file: .env
+        build: 
+            context: backend
+        ports:
+            - "8000:8000"
+#       volumes:
+#           - ./backend:/api
+#       depends_on:
+#           database:
+#               condition: service_healthy
+#       links:
+#           - database
+#   frontend:
+#       container_name: qabu-frontend
+#       restart: always
+#       environment:
+#           - NEXT_TELEMETRY_DISABLED=1
+#       build:
+#           context: frontend
+#       volumes:
+#           - ./frontend:/app
+#           - /app/.next
+#           - /app/node_modules
+#       ports:
+#           - 3000:3000
+#   nginx:
+#       container_name: qabu-nginx
+#       image: nginx:1.23-alpine
+#       ports:
+#           - "80:80"
+#       volumes:
+#           - ./nginx:/etc/nginx/conf.d
+#       tty: true
+#       depends_on:
+#           - frontend
+#           - backend
