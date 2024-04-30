@@ -9,14 +9,6 @@ import (
 
 var db *pgxpool.Pool
 
-func createSchema(db *pgxpool.Pool) {
-    _, err := db.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS greetings (greeting text)")
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Failed to create table: %v\n", err)
-        os.Exit(1)
-    }
-}
-
 func init() {
     // Retrieve POSTGRES_URL from the environment
     database_url := os.Getenv("POSTGRES_URL")
@@ -33,7 +25,7 @@ func init() {
         os.Exit(1)
     }
 
-    createSchema(db)
+    createTables(db)
 }
 
 func Get() (*pgxpool.Pool, error) {
