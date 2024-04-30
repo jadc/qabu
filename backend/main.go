@@ -5,29 +5,21 @@ import (
     "fmt"
     "os"
     //    "net/http"
-    //    "database/sql"
-    "github.com/jackc/pgx/v5/pgxpool"
+    "github.com/jadc/qabu/internal/database"
 )
 
 func main() {
-    // Retrieve POSTGRES_URL from the environment
-    database_url := os.Getenv("POSTGRES_URL")
-    if database_url == "" {
-        fmt.Println("Environmental variable POSTGRES_URL is not set")
-        os.Exit(1)
-    }
+    db, err := database.Get()
 
-    // Connect to PostgreSQL
-    db, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
+    _, err = db.Exec(context.Background(), "INSERT INTO greetings (greeting) VALUES ('yo')")
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Failed to insert row: %v\n", err)
         os.Exit(1)
     }
-    defer db.Close()
 
     // Query the database
     var greeting string
-    err = db.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
+    err = db.QueryRow(context.Background(), "SELECT * FROM greetings").Scan(&greeting)
     if err != nil {
         fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
         os.Exit(1)
