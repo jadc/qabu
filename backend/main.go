@@ -9,21 +9,23 @@ import (
 )
 
 func main() {
-    db, err := database.Get()
+    ctx := context.Background()
+    pg, err := database.Connect(ctx)
 
-    _, err = db.Exec(context.Background(), "INSERT INTO greetings (greeting) VALUES ('yo')")
+    err = pg.AddFile(ctx, database.File{FilePath: "file1.txt", MD5: "1234567890"})
     if err != nil {
         fmt.Fprintf(os.Stderr, "Failed to insert row: %v\n", err)
         os.Exit(1)
     }
 
     // Query the database
-    var greeting string
-    err = db.QueryRow(context.Background(), "SELECT * FROM greetings").Scan(&greeting)
+    files, err := pg.ListFiles(ctx)
     if err != nil {
         fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
         os.Exit(1)
     }
 
-    fmt.Println(greeting)
+    for _, file := range files {
+        fmt.Fprintf(os.Stdout, "file_path: %s, md5: %s\n", file.FilePath, file.MD5)  
+    }
 }
