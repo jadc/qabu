@@ -1,31 +1,24 @@
 package main
 
 import (
-    "context"
-    "fmt"
-    "os"
-    //    "net/http"
-    "github.com/jadc/qabu/internal/database"
+	"net/http"
+
+	"github.com/jadc/qabu/internal/api"
 )
 
 func main() {
-    ctx := context.Background()
-    pg, err := database.Connect(ctx)
+	router := http.NewServeMux()
+	server := http.Server{Addr: ":8080", Handler: router}
 
-    err = pg.AddFile(ctx, database.File{FilePath: "file1.txt", MD5: "1234567890"})
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Failed to insert row: %v\n", err)
-        os.Exit(1)
-    }
+	router.HandleFunc("GET /files", api.GetFiles)
 
-    // Query the database
-    files, err := pg.ListFiles(ctx)
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-        os.Exit(1)
-    }
+	/*
+		err = pg.AddFile(ctx, database.File{Title: "test"})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to insert row: %v\n", err)
+			os.Exit(1)
+		}
+	*/
 
-    for _, file := range files {
-        fmt.Fprintf(os.Stdout, "file_path: %s, md5: %s\n", file.FilePath, file.MD5)  
-    }
+	server.ListenAndServe()
 }
