@@ -2,7 +2,7 @@ services:
     database:
         container_name: qabu-database
         image: postgres
-        restart: always
+        restart: no
         environment:
             POSTGRES_DB: ${POSTGRES_NAME}
             POSTGRES_USER: ${POSTGRES_NAME}
@@ -17,7 +17,7 @@ services:
             retries: 10
     backend:
         container_name: qabu-backend
-        restart: always
+        restart: no
         environment:
             POSTGRES_URL: "postgresql://${POSTGRES_NAME}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_NAME}"
         build: 
