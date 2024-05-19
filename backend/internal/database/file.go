@@ -3,8 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"os"
-
+	"log"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -19,8 +18,7 @@ func init() {
 	// Connect to database
 	pg, err := Connect(context.Background())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to connect to database: %v\n", err)
-		os.Exit(1)
+		log.Fatal("Failed to connect to database: ", err)
 	}
 
 	// Create table
@@ -32,8 +30,7 @@ func init() {
     `
 	_, err = pg.db.Exec(context.Background(), query)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create table: %v\n", err)
-		os.Exit(1)
+		log.Fatal("Failed to create table: ", err)
 	}
 }
 
