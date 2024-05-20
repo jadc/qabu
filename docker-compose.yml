@@ -18,6 +18,7 @@ services:
     server:
         container_name: qabu
         restart: no
+        env_file: .env
         environment:
             POSTGRES_URL: "postgresql://${POSTGRES_NAME}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_NAME}"
         build: 
