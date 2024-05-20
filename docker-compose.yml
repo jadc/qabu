@@ -23,7 +23,7 @@ services:
         build: 
             context: server
         ports:
-            - "8000:8000"
+            - "8080:8080"
         depends_on:
             database:
                 condition: service_healthy

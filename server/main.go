@@ -13,7 +13,7 @@ func logger(h http.Handler) http.Handler {
     })
 }
 
-const PORT string = ":8000"
+const PORT string = ":8080"
 
 func main() {
     log.Println("Preparing server")
