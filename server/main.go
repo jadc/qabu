@@ -4,16 +4,21 @@ import (
     "os"
 	"net/http"
 	"log"
-	"html/template"
 	"github.com/jadc/qabu/internal/api"
 )
 
 func newRouter() *http.ServeMux {
     router := http.NewServeMux()
+    templates := api.GetTemplates()
 
     router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
-        w.Write([]byte("Hello, world!"))
+
+        var data struct {
+            Test []int
+        }
+        data.Test = []int{1, 2, 3, 4}
+        templates.Render(w, "index.html", data)
     })
 
     router.HandleFunc("/files", api.GetFiles)
