@@ -4,8 +4,22 @@ import (
     "os"
 	"net/http"
 	"log"
+	"html/template"
 	"github.com/jadc/qabu/internal/api"
 )
+
+func newRouter() *http.ServeMux {
+    router := http.NewServeMux()
+
+    router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("Hello, world!"))
+    })
+
+    router.HandleFunc("/files", api.GetFiles)
+
+    return router
+}
 
 func logger(h http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -13,7 +27,6 @@ func logger(h http.Handler) http.Handler {
         h.ServeHTTP(w, r)
     })
 }
-
 
 func main() {
     log.Println("Preparing server")
@@ -27,23 +40,7 @@ func main() {
     port = ":" + port
 
     // Create a new router and server
-	router := http.NewServeMux()
-	server := http.Server{ Addr: port, Handler: logger(router) }
-
-    log.Println("Configuring routes")
-    router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-        w.WriteHeader(http.StatusOK)
-        w.Write([]byte("Hello, world!"))
-    })
-	router.HandleFunc("GET /files", api.GetFiles)
-
-	/*
-		err = pg.AddFile(ctx, database.File{Title: "test"})
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to insert row: %v\n", err)
-			os.Exit(1)
-		}
-	*/
+	server := http.Server{ Addr: port, Handler: logger(newRouter()) }
 
     log.Println("Starting server on port", port)
     log.Fatal(server.ListenAndServe())
