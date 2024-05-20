@@ -15,39 +15,26 @@ services:
             interval: 1s
             timeout: 5s
             retries: 10
-    backend:
-        container_name: qabu-backend
+    server:
+        container_name: qabu
         restart: no
         environment:
             POSTGRES_URL: "postgresql://${POSTGRES_NAME}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_NAME}"
         build: 
-            context: backend
+            context: server
         ports:
             - "8000:8000"
         depends_on:
             database:
                 condition: service_healthy
-#   frontend:
-#       container_name: qabu-frontend
-#       restart: always
-#       environment:
-#           - NEXT_TELEMETRY_DISABLED=1
-#       build:
-#           context: frontend
-#       volumes:
-#           - ./frontend:/app
-#           - /app/.next
-#           - /app/node_modules
-#       ports:
-#           - 3000:3000
 #   nginx:
 #       container_name: qabu-nginx
 #       image: nginx:1.23-alpine
 #       ports:
 #           - "80:80"
 #       volumes:
-#           - ./nginx:/etc/nginx/conf.d
+#           - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
 #       tty: true
 #       depends_on:
-#           - frontend
 #           - backend
+#           - frontend
