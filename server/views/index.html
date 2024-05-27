@@ -11,15 +11,27 @@
     <body>
         <h1>Qabu</h1>
         <p>Heavy work in progress!</p>
-        {{ template "list" . }}
+
+        <h1>Add New File</h1>
+        <form hx-post="/files" hx-target="#files" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Name">
+            <input type="file" name="file">
+            <input type="submit" value="Submit">
+        </form>
+
+        <h1>Files</h1>
+        {{ block "list" . }}
+        <ul id="files">
+            {{ range .Files }}
+                <li>
+                    <a href="/download/{{ .Name }}">{{ .Name }}</a>
+                    <a href="/delete/{{ .Name }}" hx-delete="true" hx-target="#files">Delete</a>
+                </li>
+            {{ end }}
+        </ul>
+        {{ end }}
     </body>
 </html>
 {{ end }}
 
-{{ block "list" . }}
-<ul>
-    {{ range .Test }}
-        <li>{{ . }}</li>
-    {{ end }}
-</ul>
-{{ end }}
+
