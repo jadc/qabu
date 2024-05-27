@@ -1,5 +1,8 @@
 package api
 
+// TODO: replace with posts api, not files
+
+/*
 import (
 	"context"
 	"encoding/json"
@@ -28,3 +31,11 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
+
+func AddFile(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	// TODO
+	w.WriteHeader(http.StatusOK)
+	//w.Write(res)
+}
+*/

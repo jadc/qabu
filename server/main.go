@@ -11,7 +11,7 @@ func newRouter() *http.ServeMux {
     router := http.NewServeMux()
     templates := api.GetTemplates()
 
-    router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
 
         var data struct {
@@ -21,7 +21,8 @@ func newRouter() *http.ServeMux {
         templates.Render(w, "index.html", data)
     })
 
-    router.HandleFunc("/files", api.GetFiles)
+    //router.HandleFunc("GET /files", api.GetFiles)
+    //router.HandleFunc("POST /files", api.AddFile)
 
     return router
 }

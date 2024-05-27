@@ -2,16 +2,23 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"github.com/jackc/pgx/v5"
+	"os/exec"
+	"encoding/json"
 )
 
-// Simplified representation of a file for listing
-// The rest of the metadata is stored in other tables
 type File struct {
-	Id    int    `json:"id"`
-	Title string `json:"title"`
+    UUID      string
+    FileName  string
+    Size      int64
+    Type      string
+    Tags      []string
+    Year      int
+    Month     int
+    Day       int
+    Leaked    string
+    Exif      string
+    Original  bool
 }
 
 func init() {
@@ -24,8 +31,15 @@ func init() {
 	// Create table
 	query := `
         CREATE TABLE IF NOT EXISTS files (
-            id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            title TEXT NOT NULL
+            uuid UUID PRIMARY KEY,
+            file_name TEXT NOT NULL,
+            size BIGINT,
+            type TEXT,
+            tags TEXT[],
+            year INT, month INT, day INT,
+            leaked TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            exif JSONB NOT NULL,
+            original BOOLEAN DEFAULT FALSE,
         )
     `
 	_, err = pg.db.Exec(context.Background(), query)
@@ -34,6 +48,7 @@ func init() {
 	}
 }
 
+/*
 func (pg *postgres) ListFiles(ctx context.Context) ([]File, error) {
 	query := `SELECT * FROM files`
 
@@ -45,9 +60,71 @@ func (pg *postgres) ListFiles(ctx context.Context) ([]File, error) {
 
 	return pgx.CollectRows(rows, pgx.RowToStructByName[File])
 }
+*/
 
-func (pg *postgres) AddFile(ctx context.Context, file File) error {
-	query := `INSERT INTO files (title) VALUES ($1)`
-	_, err := pg.db.Exec(ctx, query, file.Title)
+// Given a file struct, save it to the database
+func (pg *postgres) SaveFile(ctx context.Context, file File) error {
+	query := `INSERT INTO files (uuid, file_name, size, type, tags, year, month, day, leaked, exif, original) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+	_, err := pg.db.Exec(ctx, query, file.UUID, file.FileName, file.Size, file.Type, file.Tags, file.Year, file.Month, file.Day, file.Leaked, file.Exif, file.Original)
 	return err
+}
+
+// Given a UUID, delete the file from the database
+func (pg *postgres) DeleteFile(ctx context.Context, uuid string) error {
+    query := `DELETE FROM files WHERE uuid = $1`
+    _, err := pg.db.Exec(ctx, query, uuid)
+    return err
+}
+
+// Given a local path to a file, create a new file struct and pre-fill some fields based on the file's exif data, then return the struct
+func (pg *postgres) CreateFile(ctx context.Context, path string) (*File, error) {
+    new_file := File{
+        UUID: "",
+        FileName: "",
+        Size: 0,
+        Type: "",
+        Tags: []string{},
+        Year: 0,
+        Month: 0,
+        Day: 0,
+        Leaked: "",
+        Exif: "",
+        Original: false,
+    }
+
+    // Get checksum
+    sha_cmd := exec.Command("sha256sum", path)
+    sha_stdout, err := sha_cmd.Output()
+    if err != nil {
+        log.Println("Failed to get checksum: ", err)
+        return nil, err
+    }
+    new_file.UUID = string(sha_stdout[:64])
+
+    // Get exif data
+    cmd := exec.Command("exiftool", "-n", "-json", path)
+    stdout, err := cmd.Output()
+    if err != nil {
+        log.Println("Failed to get exif data: ", err)
+        return nil, err
+    }
+
+    // Parse exif data
+    exif := make(map[string]interface{})
+    err = json.Unmarshal(stdout, &exif)
+    if err != nil {
+        log.Println("Failed to parse exif data: ", err)
+        return nil, err
+    }
+
+    // Fill in file struct with exif data when possible
+    new_file.FileName = exif["FileName"].(string)
+    new_file.Size = exif["FileSize"].(int64)
+    new_file.Type = exif["FileType"].(string)
+
+    // TODO: date parsing
+
+    new_file.Exif = string(stdout)
+
+    return &new_file, err
 }
