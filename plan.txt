@@ -1,0 +1,29 @@
+GET /
+- HTML page with a list of all posts in the database, filters, and search
+
+GET /upload
+- HTML page with a form to upload a file
+
+POST /upload
+- Given a file, store it in the database and redirect to /files/:uuid
+
+POST /files
+- Given an uploaded file, get its exif data, and store in FILES table:
+    - uuid (hash checksum of file, sha256)
+    - file name (from exif)
+    - size (from exif)
+    - type (from exif)
+    - created date (from exif, use earliest date)
+    - leaked date (from exif, prefill with newest date, prompt for user input)
+    - exif (exiftool stdout with -j flag, jsonb)
+    - mirrors (list of urls to download the file, uploaded by server, configurable local copy)
+        - retrieved by joining with MIRRORS table
+
+GET /files/:uuid
+- Given a uuid, display data from FILES table
+
+DELETE /files/:uuid
+- Given a uuid, delete the file from the database and filesystem
+
+PATCH /files/:uuid
+- Given a uuid, update any field of the file
