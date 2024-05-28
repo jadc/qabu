@@ -13,9 +13,7 @@ type File struct {
     Size      int64
     Type      string
     Tags      []string
-    Year      int
-    Month     int
-    Day       int
+    Created   string
     Leaked    string
     Exif      string
     Original  bool
@@ -36,7 +34,7 @@ func init() {
             size BIGINT,
             type TEXT,
             tags TEXT[],
-            year INT, month INT, day INT,
+            created TEXT,
             leaked TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             exif JSONB NOT NULL,
             original BOOLEAN DEFAULT FALSE,
@@ -64,8 +62,8 @@ func (pg *postgres) ListFiles(ctx context.Context) ([]File, error) {
 
 // Given a file struct, save it to the database
 func (pg *postgres) SaveFile(ctx context.Context, file File) error {
-	query := `INSERT INTO files (uuid, file_name, size, type, tags, year, month, day, leaked, exif, original) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
-	_, err := pg.db.Exec(ctx, query, file.UUID, file.FileName, file.Size, file.Type, file.Tags, file.Year, file.Month, file.Day, file.Leaked, file.Exif, file.Original)
+	query := `INSERT INTO files (uuid, file_name, size, type, tags, created, leaked, exif, original) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	_, err := pg.db.Exec(ctx, query, file.UUID, file.FileName, file.Size, file.Type, file.Tags, file.Created, file.Leaked, file.Exif, file.Original)
 	return err
 }
 
@@ -84,9 +82,7 @@ func (pg *postgres) CreateFile(ctx context.Context, path string) (*File, error) 
         Size: 0,
         Type: "",
         Tags: []string{},
-        Year: 0,
-        Month: 0,
-        Day: 0,
+        Created: "",
         Leaked: "",
         Exif: "",
         Original: false,
@@ -122,7 +118,27 @@ func (pg *postgres) CreateFile(ctx context.Context, path string) (*File, error) 
     new_file.Size = exif["FileSize"].(int64)
     new_file.Type = exif["FileType"].(string)
 
-    // TODO: date parsing
+    date_labels := []string{"FileModifyDate", "FileAccessDate", "FileInodeChangeDate", "FilePermissionsModifyDate", "FileCreationDate", "Year", "DateTimeOriginal"}
+    dates := []string{}
+
+    // Get dates
+    for _, date := range date_labels {
+        if exif[date] != nil {
+            dates = append(dates, exif[date].(string))
+        }
+    }
+
+    for _, date := range dates {
+        // Find the earliest date
+        if new_file.Created > date {
+            new_file.Created = date
+        }
+
+        // Find the latest date
+        if new_file.Leaked < date {
+            new_file.Leaked = date
+        }
+    }
 
     new_file.Exif = string(stdout)
 
