@@ -1,0 +1,13 @@
+[package]
+name = "inlay-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "inlay"
+path = "src/main.rs"
+
+[dependencies]
+inlay = { path = "../core" }
